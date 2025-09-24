@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Sparkles, PartyPopper } from 'lucide-react';
+import { Loader2, Cat, PartyPopper } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -125,7 +125,7 @@ export function PersonalQuestionGame() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="text-accent" />
+            <Cat className="text-accent" />
             Sorpresa de IA
           </CardTitle>
           <CardDescription>Genera una pregunta especial solo para ustedes dos.</CardDescription>

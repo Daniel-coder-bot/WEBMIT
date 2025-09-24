@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Heart, PartyPopper } from 'lucide-react';
+import { Cat, PartyPopper } from 'lucide-react';
 import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
 
@@ -128,7 +128,7 @@ export function PhotoMemoryGame() {
               )}
             >
               <div className="absolute w-full h-full rounded-lg bg-primary flex items-center justify-center [backface-visibility:hidden]">
-                 <Heart className="size-1/2 text-primary-foreground/50"/>
+                 <Cat className="size-1/2 text-primary-foreground/50"/>
               </div>
               <div className="absolute w-full h-full rounded-lg bg-card [backface-visibility:hidden] [transform:rotateY(180deg)]">
                 <Image
