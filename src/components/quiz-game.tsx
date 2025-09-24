@@ -20,19 +20,43 @@ import { PartyPopper } from 'lucide-react';
 
 const questions = [
   {
-    question: '¿Dónde fue nuestra primera cita "oficial"?',
-    options: ['Un museo de arte', 'Un café con gatos', 'Una librería antigua'],
-    correctAnswer: 0,
+    question: '¿Dónde fue nuestra primera cita?',
+    options: ['En el cine 🎬', 'En Insurgentes por un helado 🍦', 'En un museo 🖼️'],
+    correctAnswers: [1],
   },
   {
-    question: '¿Cuál de estos es mi lenguaje de amor principal?',
-    options: ['Palabras de afirmación', 'Tiempo de calidad', 'Actos de servicio'],
-    correctAnswer: 1,
+    question: '¿Cuál es mi comida favorita?',
+    options: ['Pizza 🍕', 'Tacos 🌮', 'Sushi 🍣'],
+    correctAnswers: [2],
   },
   {
-    question: 'Si pudieramos viajar a cualquier lugar ahora mismo, ¿cuál elegiría?',
-    options: ['Una cabaña en el bosque', 'Un tour por museos de Europa', 'Una playa tranquila'],
-    correctAnswer: 1,
+    question: '¿Qué animal tendría si pudiera elegir?',
+    options: ['Gatos 🐱', 'Perros 🐶', 'Conejos 🐇'],
+    correctAnswers: [1],
+  },
+  {
+    question: '¿Qué palabra uso mucho contigo?',
+    options: ['Te amo ❤️', 'Oye 🙃', 'Mitzy 💖'],
+    correctAnswers: [0, 2],
+  },
+  {
+    question: 'Si vamos a un museo, ¿qué es lo que más disfruto?',
+    options: ['Ver las pinturas 🖌️', 'Comprar recuerdos 🎁', 'Tomar fotos 📸'],
+    correctAnswers: [2],
+  },
+  {
+    question: '¿Qué me gusta leer más?',
+    options: ['Libros 📚', 'Revistas', 'Comics'],
+    correctAnswers: [0],
+  },
+  {
+    question: 'Una frase de un escritor famoso que me recuerda a ti:',
+    options: [
+      '"Amar no es mirarse el uno al otro; es mirar juntos en la misma dirección." – Antoine de Saint-Exupéry',
+      '"La amistad es un alma que habita en dos cuerpos." – Aristóteles',
+      '"Donde hay amor, hay vida." – Mahatma Gandhi',
+    ],
+    correctAnswers: [0],
   },
 ];
 
@@ -51,7 +75,7 @@ export function QuizGame() {
     setSelectedAnswer(answerIndex);
     setIsAnswered(true);
 
-    if (answerIndex === questions[currentQuestionIndex].correctAnswer) {
+    if (questions[currentQuestionIndex].correctAnswers.includes(answerIndex)) {
       setScore(score + 1);
     }
   };
@@ -93,9 +117,9 @@ export function QuizGame() {
           <AlertDialogHeader className="items-center text-center">
             <PartyPopper className="text-accent size-12" />
             <AlertDialogTitle className="font-headline text-3xl">¡Juego Terminado!</AlertDialogTitle>
-            <AlertDialogDescription className="text-xl">
-              ¡Lo hiciste genial, amor! Tu puntuación es <span className="font-bold text-accent">{score} de {questions.length}</span>.
-              Cada respuesta me recuerda lo mucho que nos conocemos.
+            <AlertDialogDescription className="text-xl space-y-4">
+              <p>Obtuviste {score} de {questions.length} correctas ❤️</p>
+              <p>¡Eres increíble! Gracias por conocerme tanto ❤️</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center">
@@ -120,7 +144,7 @@ export function QuizGame() {
       <CardContent>
         <div className="grid grid-cols-1 gap-4">
           {questions[currentQuestionIndex].options.map((option, index) => {
-            const isCorrect = index === questions[currentQuestionIndex].correctAnswer;
+            const isCorrect = questions[currentQuestionIndex].correctAnswers.includes(index);
             const isSelected = selectedAnswer === index;
             
             return (
@@ -131,7 +155,7 @@ export function QuizGame() {
                 variant="outline"
                 size="lg"
                 className={cn(
-                  "h-auto text-wrap justify-start",
+                  "h-auto text-wrap justify-start text-left",
                   isAnswered && isCorrect && "bg-green-200 border-green-400 text-green-900 hover:bg-green-200",
                   isAnswered && isSelected && !isCorrect && "bg-red-200 border-red-400 text-red-900 hover:bg-red-200",
                   "dark:bg-card dark:hover:bg-muted",
