@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -27,21 +27,21 @@ type CardData = {
   isMatched: boolean;
 };
 
-const shuffleArray = (array: any[]) => {
-  // Make a copy to avoid modifying the original array
-  const newArray = [...array];
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-  }
-  return newArray;
-};
+// This function now runs on the client and is stable
+const createShuffledCards = (): CardData[] => {
+  const imagePool = PlaceHolderImages;
+  
+  // Shuffle images and pick 5
+  const shuffledImages = [...imagePool].sort(() => 0.5 - Math.random());
+  const selectedImages = shuffledImages.slice(0, 5);
 
-const generateInitialCards = (): CardData[] => {
-    const selectedImages = shuffleArray([...PlaceHolderImages]).slice(0, 5);
-    const cardPairs = [...selectedImages, ...selectedImages];
-    const shuffledPairs = shuffleArray(cardPairs);
-    return shuffledPairs.map((imageData, index) => ({
+  // Create pairs
+  const cardPairs = [...selectedImages, ...selectedImages];
+
+  // Shuffle pairs and map to CardData
+  return cardPairs
+    .sort(() => 0.5 - Math.random())
+    .map((imageData, index) => ({
       id: index,
       imageId: imageData.id,
       imageUrl: imageData.imageUrl,
@@ -61,55 +61,61 @@ export function PhotoMemoryGame() {
   const { completeGame, getNextGamePath } = useGameProgress();
   const router = useRouter();
 
-  // Generate cards only on the client-side after hydration
   useEffect(() => {
-    setCards(generateInitialCards());
+    setCards(createShuffledCards());
   }, []);
 
-  const handleCardClick = (cardId: number) => {
-    if (isChecking || flippedCards.includes(cardId) || cards.find(c => c.id === cardId)?.isMatched) {
+  const handleCardClick = (cardIndex: number) => {
+    // If checking, card already flipped/matched, or 2 cards already open, do nothing
+    if (isChecking || cards[cardIndex].isFlipped || flippedCards.length === 2) {
       return;
     }
 
-    const newCards = cards.map(card => 
-      card.id === cardId ? { ...card, isFlipped: true } : card
-    );
-    setCards(newCards);
-
-    const newFlippedCards = [...flippedCards, cardId];
+    const newFlippedCards = [...flippedCards, cardIndex];
     setFlippedCards(newFlippedCards);
 
-    if (newFlippedCards.length === 2) {
-      setMoves(moves + 1);
-      setIsChecking(true);
-      const [firstCardId, secondCardId] = newFlippedCards;
-      const firstCard = newCards.find(c => c.id === firstCardId);
-      const secondCard = newCards.find(c => c.id === secondCardId);
+    // Flip the card visually
+    const newCards = [...cards];
+    newCards[cardIndex].isFlipped = true;
+    setCards(newCards);
 
-      if (firstCard && secondCard && firstCard.imageId === secondCard.imageId) {
-        // Match
-        setTimeout(() => {
-            const matchedCards = newCards.map(card => 
-                (card.id === firstCardId || card.id === secondCardId) 
-                ? { ...card, isMatched: true, isFlipped: true } 
-                : card
-            );
-            setCards(matchedCards);
-            setFlippedCards([]);
-            setIsChecking(false);
-            if (matchedCards.every(card => card.isMatched)) {
-                completeGame('/photo-memory');
-                setTimeout(() => setIsComplete(true), 500);
-            }
-        }, 500);
+    // If two cards are flipped, check for a match
+    if (newFlippedCards.length === 2) {
+      setIsChecking(true);
+      setMoves(prev => prev + 1);
+
+      const [firstIndex, secondIndex] = newFlippedCards;
+      const card1 = cards[firstIndex];
+      const card2 = cards[secondIndex];
+
+      if (card1.imageId === card2.imageId) {
+        // It's a match!
+        const matchedCards = cards.map((card, index) => {
+          if (index === firstIndex || index === secondIndex) {
+            return { ...card, isMatched: true };
+          }
+          return card;
+        });
+        
+        // Check for win condition
+        if (matchedCards.every(card => card.isMatched)) {
+          completeGame('/photo-memory');
+          setTimeout(() => setIsComplete(true), 600);
+        }
+        
+        setCards(matchedCards);
+        setFlippedCards([]);
+        setIsChecking(false);
+
       } else {
-        // No match
+        // Not a match, flip them back after a delay
         setTimeout(() => {
-          const flippedBackCards = newCards.map(card =>
-            (card.id === firstCardId || card.id === secondCardId)
-            ? { ...card, isFlipped: false }
-            : card
-          )
+          const flippedBackCards = cards.map((card, index) => {
+            if (index === firstIndex || index === secondIndex) {
+              return { ...card, isFlipped: false };
+            }
+            return card;
+          });
           setCards(flippedBackCards);
           setFlippedCards([]);
           setIsChecking(false);
@@ -119,7 +125,7 @@ export function PhotoMemoryGame() {
   };
   
   const resetGame = () => {
-    setCards(generateInitialCards());
+    setCards(createShuffledCards());
     setFlippedCards([]);
     setIsChecking(false);
     setMoves(0);
@@ -128,39 +134,38 @@ export function PhotoMemoryGame() {
 
   const handleNext = () => {
     const nextGame = getNextGamePath('/photo-memory');
-    if (nextGame) {
-      router.push(nextGame);
-    } else {
-      router.push('/');
-    }
+    router.push(nextGame ?? '/');
   };
   
   return (
     <div className="flex flex-col items-center gap-8">
        {cards.length === 0 ? (
-        <div className="text-center">Generando memorama...</div>
+        <div className="text-center p-8">Generando memorama...</div>
       ) : (
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 max-w-lg mx-auto">
-          {cards.map(card => (
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 max-w-lg mx-auto p-4">
+          {cards.map((card, index) => (
             <div
               key={card.id}
               className="aspect-square rounded-lg cursor-pointer [perspective:1000px]"
-              onClick={() => handleCardClick(card.id)}
+              onClick={() => handleCardClick(index)}
             >
               <div
                 className={cn(
                   "relative w-full h-full rounded-lg shadow-md [transform-style:preserve-3d] transition-transform duration-700",
-                  (card.isFlipped || card.isMatched) && "[transform:rotateY(180deg)]"
+                  card.isFlipped && "[transform:rotateY(180deg)]"
                 )}
               >
+                {/* Card Back */}
                 <div className="absolute w-full h-full rounded-lg bg-primary flex items-center justify-center [backface-visibility:hidden]">
                    <Cat className="size-1/2 text-primary-foreground/50"/>
                 </div>
-                <div className="absolute w-full h-full rounded-lg bg-card p-1 [backface-visibility:hidden] [transform:rotateY(180deg)] text-accent overflow-hidden">
+                {/* Card Front */}
+                <div className="absolute w-full h-full rounded-lg bg-card p-1 [backface-visibility:hidden] [transform:rotateY(180deg)] overflow-hidden">
                   <Image
                       src={card.imageUrl}
                       alt={card.imageHint}
                       fill
+                      sizes="10vw"
                       className="object-cover"
                       data-ai-hint={card.imageHint}
                     />
