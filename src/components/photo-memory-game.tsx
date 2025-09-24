@@ -16,7 +16,7 @@ import {
 import { PartyPopper, Cat } from 'lucide-react';
 import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
-import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type CardData = {
   id: number;
@@ -28,21 +28,26 @@ type CardData = {
 };
 
 const shuffleArray = (array: any[]) => {
-  return array.sort(() => Math.random() - 0.5);
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 };
 
-const generateCards = (): CardData[] => {
-  const selectedImages = shuffleArray([...PlaceHolderImages]).slice(0, 5);
-  const cardPairs = [...selectedImages, ...selectedImages];
-  return shuffleArray(cardPairs).map((imageData, index) => ({
-    id: index,
-    imageId: imageData.id,
-    imageUrl: imageData.imageUrl,
-    imageHint: imageData.imageHint,
-    isFlipped: false,
-    isMatched: false,
-  }));
+const generateInitialCards = (): CardData[] => {
+    const selectedImages = shuffleArray([...PlaceHolderImages]).slice(0, 5);
+    const cardPairs = [...selectedImages, ...selectedImages];
+    return shuffleArray(cardPairs).map((imageData, index) => ({
+      id: index,
+      imageId: imageData.id,
+      imageUrl: imageData.imageUrl,
+      imageHint: imageData.imageHint,
+      isFlipped: false,
+      isMatched: false,
+    }));
 };
+
 
 export function PhotoMemoryGame() {
   const [cards, setCards] = useState<CardData[]>([]);
@@ -54,7 +59,7 @@ export function PhotoMemoryGame() {
   const router = useRouter();
 
   useEffect(() => {
-    setCards(generateCards());
+    setCards(generateInitialCards());
   }, []);
 
   const handleCardClick = (cardId: number) => {
@@ -110,7 +115,7 @@ export function PhotoMemoryGame() {
   };
   
   const resetGame = () => {
-    setCards(generateCards());
+    setCards(generateInitialCards());
     setFlippedCards([]);
     setIsChecking(false);
     setMoves(0);
