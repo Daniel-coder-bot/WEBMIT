@@ -48,6 +48,12 @@ export function useGameProgress() {
     });
   }, []);
 
+  const resetProgress = useCallback(() => {
+    const newCompletedGames: string[] = [];
+    setCompletedGames(newCompletedGames);
+    saveProgress(newCompletedGames);
+  }, []);
+
   const isUnlocked = useCallback((gamePath: string) => {
     const gameIndex = gameOrder.indexOf(gamePath);
     if (gameIndex === 0) {
@@ -65,5 +71,5 @@ export function useGameProgress() {
     return null;
   }, []);
 
-  return { completedGames, completeGame, isUnlocked, getNextGamePath, isLoading };
+  return { completedGames, completeGame, isUnlocked, getNextGamePath, isLoading, resetProgress };
 }

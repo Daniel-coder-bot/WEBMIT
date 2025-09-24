@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, CheckCircle2, Lock, Cat } from 'lucide-react';
+import { Heart, CheckCircle2, Lock, Cat, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { GameProgressProvider, useGameProgressClient } from '@/components/game-progress-provider';
@@ -25,9 +26,14 @@ const games = [
 ];
 
 function GameList() {
-  const { isUnlocked, completedGames, isLoading } = useGameProgressClient();
+  const { isUnlocked, completedGames, isLoading, resetProgress } = useGameProgressClient();
   const [testMode, setTestMode] = useState(false);
   
+  const handleReset = () => {
+    resetProgress();
+    setTestMode(false);
+  };
+
   return (
     <Card className="w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
       <CardHeader className="items-center text-center">
@@ -87,6 +93,12 @@ function GameList() {
           )}
         </div>
       </CardContent>
+       <CardFooter className="flex-col items-center justify-center pt-6">
+          <Button variant="outline" onClick={handleReset}>
+            <RotateCcw className="mr-2" />
+            Reiniciar Todo
+          </Button>
+      </CardFooter>
     </Card>
   )
 }
