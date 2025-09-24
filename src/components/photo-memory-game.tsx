@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PartyPopper } from 'lucide-react';
-import { useGameProgressClient } from '@/components/game-progress-provider';
+import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
 
 type CardData = {
@@ -54,7 +54,7 @@ export function PhotoMemoryGame() {
   const [isChecking, setIsChecking] = useState(false);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const { completeGame, getNextGamePath } = useGameProgressClient();
+  const { completeGame, getNextGamePath } = useGameProgress();
   const router = useRouter();
 
   useEffect(() => {
