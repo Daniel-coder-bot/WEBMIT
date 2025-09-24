@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { GameProgressProvider, useGameProgressClient } from '@/components/game-progress-provider';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useState } from 'react';
 
 const games = [
   { name: 'Sopa de Letras', path: '/word-search', description: 'Encuentra las palabras secretas.' },
@@ -23,6 +26,7 @@ const games = [
 
 function GameList() {
   const { isUnlocked, completedGames, isLoading } = useGameProgressClient();
+  const [testMode, setTestMode] = useState(false);
   
   return (
     <Card className="w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
@@ -37,6 +41,10 @@ function GameList() {
         <CardDescription className="font-body text-base">
           Una colección de juegos para nosotros.
         </CardDescription>
+        <div className="flex items-center space-x-2 pt-4">
+          <Switch id="test-mode" checked={testMode} onCheckedChange={setTestMode} />
+          <Label htmlFor="test-mode">Modo Test</Label>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
@@ -44,7 +52,7 @@ function GameList() {
             <p className="text-center">Cargando progreso...</p>
           ) : (
             games.map((game) => {
-              const unlocked = isUnlocked(game.path);
+              const unlocked = testMode || isUnlocked(game.path);
               const completed = completedGames.includes(game.path);
 
               return (

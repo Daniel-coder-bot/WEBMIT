@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useState, useEffect, type ReactNode } from 'react';
+import { Heart, Star, Cat, Gift, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import {
@@ -14,29 +13,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Cat, PartyPopper } from 'lucide-react';
-import { useGameProgress } from '@/hooks/use-game-progress';
+import { PartyPopper } from 'lucide-react';
+import { useGameProgressClient } from '@/components/game-progress-provider';
 import { useRouter } from 'next/navigation';
 
 type CardData = {
   id: number;
-  imageId: string;
-  imageUrl: string;
+  iconName: string;
+  icon: ReactNode;
   isFlipped: boolean;
   isMatched: boolean;
 };
+
+const ICONS = [
+  { name: 'Heart', component: <Heart className="size-full" /> },
+  { name: 'Star', component: <Star className="size-full" /> },
+  { name: 'Cat', component: <Cat className="size-full" /> },
+  { name: 'Gift', component: <Gift className="size-full" /> },
+  { name: 'Sun', component: <Sun className="size-full" /> },
+];
 
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() - 0.5);
 };
 
 const generateCards = (): CardData[] => {
-  const gameImages = PlaceHolderImages.slice(0, 6);
-  const cardPairs = [...gameImages, ...gameImages];
-  return shuffleArray(cardPairs).map((image, index) => ({
+  const cardPairs = [...ICONS, ...ICONS];
+  return shuffleArray(cardPairs).map((iconData, index) => ({
     id: index,
-    imageId: image.id,
-    imageUrl: image.imageUrl,
+    iconName: iconData.name,
+    icon: iconData.component,
     isFlipped: false,
     isMatched: false,
   }));
@@ -48,7 +54,7 @@ export function PhotoMemoryGame() {
   const [isChecking, setIsChecking] = useState(false);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const { completeGame, getNextGamePath } = useGameProgress();
+  const { completeGame, getNextGamePath } = useGameProgressClient();
   const router = useRouter();
 
   useEffect(() => {
@@ -71,7 +77,7 @@ export function PhotoMemoryGame() {
       setMoves(moves + 1);
       setIsChecking(true);
       const [firstCardId, secondCardId] = newFlippedCards;
-      if (newCards[firstCardId].imageId === newCards[secondCardId].imageId) {
+      if (newCards[firstCardId].iconName === newCards[secondCardId].iconName) {
         // Match
         newCards[firstCardId].isMatched = true;
         newCards[secondCardId].isMatched = true;
@@ -114,7 +120,7 @@ export function PhotoMemoryGame() {
 
   return (
     <div className="flex flex-col items-center gap-8">
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4">
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 max-w-lg mx-auto">
         {cards.map(card => (
           <div
             key={card.id}
@@ -130,15 +136,8 @@ export function PhotoMemoryGame() {
               <div className="absolute w-full h-full rounded-lg bg-primary flex items-center justify-center [backface-visibility:hidden]">
                  <Cat className="size-1/2 text-primary-foreground/50"/>
               </div>
-              <div className="absolute w-full h-full rounded-lg bg-card [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                <Image
-                  src={card.imageUrl}
-                  alt={`Memory card ${card.imageId}`}
-                  data-ai-hint={PlaceHolderImages.find(img => img.id === card.imageId)?.imageHint}
-                  fill
-                  className="object-cover rounded-lg"
-                  sizes="(max-width: 768px) 33vw, 25vw"
-                />
+              <div className="absolute w-full h-full rounded-lg bg-card p-3 [backface-visibility:hidden] [transform:rotateY(180deg)] text-accent">
+                {card.icon}
               </div>
             </div>
           </div>
