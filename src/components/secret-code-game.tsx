@@ -17,19 +17,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Heart } from 'lucide-react';
+import { Heart, Mail } from 'lucide-react';
 import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
 
-const SECRET_CODE = '¿Quieres ser mi novia?';
+const SECRET_CODE = 'GATITOS';
 const GRID_SIZE = 15;
 const CHARS = 'ABCDEF0123456789*#@&?¿!¡';
 
 const generateCodeGrid = () => {
-  const grid = Array.from({ length: GRID_SIZE*GRID_SIZE }, () => CHARS[Math.floor(Math.random() * CHARS.length)]);
-  const startPos = Math.floor(Math.random() * (grid.length - SECRET_CODE.length));
-  for(let i=0; i < SECRET_CODE.length; i++) {
-    grid[startPos + i] = SECRET_CODE[i];
+  const grid = Array.from({ length: GRID_SIZE * GRID_SIZE }, () => CHARS[Math.floor(Math.random() * CHARS.length)]);
+  const codeToHide = 'GATITOS';
+  const startPos = Math.floor(Math.random() * (grid.length - codeToHide.length));
+  for (let i = 0; i < codeToHide.length; i++) {
+    grid[startPos + i] = codeToHide[i];
   }
   return grid.join('');
 };
@@ -39,8 +40,10 @@ const FormSchema = z.object({
 });
 type FormData = z.infer<typeof FormSchema>;
 
+type GameState = 'find_code' | 'show_letter' | 'show_question' | 'final_confirmation';
+
 export function SecretCodeGame() {
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [gameState, setGameState] = useState<GameState>('find_code');
   const { completeGame, getNextGamePath } = useGameProgress();
   const router = useRouter();
 
@@ -52,21 +55,24 @@ export function SecretCodeGame() {
   });
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    const formattedInput = data.code.trim();
-    if (formattedInput.toLowerCase() === SECRET_CODE.toLowerCase()) {
+    const formattedInput = data.code.trim().toUpperCase();
+    if (formattedInput === SECRET_CODE) {
       completeGame('/secret-code');
-      setIsRevealed(true);
+      setGameState('show_letter');
     } else {
       form.setError('code', {
         type: 'manual',
-        message: 'Clave incorrecta. ¡Sigue buscando!',
+        message: 'Clave incorrecta. ¡Sigue buscando, tiene que ver con algo que amamos!',
       });
     }
   };
-  
-  const resetGame = () => {
-    setIsRevealed(false);
-    form.reset();
+
+  const handleShowQuestion = () => {
+    setGameState('show_question');
+  };
+
+  const handleFinalConfirmation = () => {
+    setGameState('final_confirmation');
   }
 
   const handleNext = () => {
@@ -78,48 +84,103 @@ export function SecretCodeGame() {
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>Descifra el mensaje</CardTitle>
-          <CardDescription>
-            Hay una clave secreta escondida en el texto de abajo. Encuéntrala y escríbela para revelar un mensaje especial.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="p-4 bg-muted rounded-md font-code text-sm break-all leading-relaxed tracking-widest h-48 overflow-y-auto">
-            {codeGrid}
-          </div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Clave Secreta</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Escribe la clave aquí..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Confirmar</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      <AlertDialog open={isRevealed}>
+  if (gameState === 'find_code') {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Descifra el mensaje</CardTitle>
+            <CardDescription>
+              Hay una palabra secreta escondida en el texto de abajo. Encuéntrala y escríbela para revelar un mensaje especial.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="p-4 bg-muted rounded-md font-code text-sm break-all leading-relaxed tracking-widest h-48 overflow-y-auto">
+              {codeGrid}
+            </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Clave Secreta</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Una de nuestras cosas favoritas..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Confirmar</Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (gameState === 'show_letter') {
+     return (
+      <AlertDialog open={true}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-center text-center">
+            <Mail className="size-12 text-accent" />
+            <AlertDialogTitle className="text-3xl font-headline mt-4">
+              ¡Descifraste el código!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg text-left space-y-4 p-4">
+              <p>Mi amor,</p>
+              <p>Si estás leyendo esto, es porque una vez más demostraste lo increíble que eres. Cada día a tu lado ha sido una aventura, un descubrimiento, una razón para sonreír. Hemos compartido risas, sueños, y uno que otro secreto (como este).</p>
+              <p>Me has enseñado tanto sobre el amor, la paciencia y sobre cómo encontrar la felicidad en los pequeños detalles, como en el ronroneo de un gatito. Por todo eso y más, tengo una última pregunta para ti...</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleShowQuestion}>
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+     )
+  }
+  
+  if (gameState === 'show_question') {
+    return (
+      <AlertDialog open={true}>
         <AlertDialogContent>
           <AlertDialogHeader className="items-center text-center">
             <Heart className="size-12 text-destructive animate-pulse" />
             <AlertDialogTitle className="text-3xl font-headline mt-4">
-              {SECRET_CODE} ❤️
+              ¿Quieres ser mi novia?
+            </AlertDialogTitle>
+             <AlertDialogDescription className="text-lg">
+              Elige tu respuesta:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-col sm:justify-center gap-2 w-full">
+            <Button onClick={handleFinalConfirmation} size="lg" className="w-full">Sí, acepto ❤️</Button>
+            <Button onClick={handleFinalConfirmation} size="lg" className="w-full">Claro que sí, mi amor ✨</Button>
+            <Button onClick={handleFinalConfirmation} size="lg" className="w-full">Obvio, ¡ya era hora! 🥰</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
+
+  if (gameState === 'final_confirmation') {
+    return (
+       <AlertDialog open={true}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-center text-center">
+            <Heart className="size-12 text-destructive animate-pulse" />
+            <AlertDialogTitle className="text-3xl font-headline mt-4">
+              ¡Dijo que sí! ❤️
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg">
-              ¡Has descifrado el código de mi corazón! Eres la mejor detective y la mejor novia.
+              Oficialmente eres la mejor novia del universo. ¡Te amo!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -129,6 +190,8 @@ export function SecretCodeGame() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    )
+  }
+  
+  return null;
 }
