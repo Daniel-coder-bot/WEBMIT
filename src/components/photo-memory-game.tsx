@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -32,7 +32,7 @@ const shuffleArray = (array: any[]) => {
 };
 
 const generateCards = (): CardData[] => {
-  const selectedImages = shuffleArray(PlaceHolderImages).slice(0, 5);
+  const selectedImages = shuffleArray([...PlaceHolderImages]).slice(0, 5);
   const cardPairs = [...selectedImages, ...selectedImages];
   return shuffleArray(cardPairs).map((imageData, index) => ({
     id: index,
