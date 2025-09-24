@@ -130,6 +130,10 @@ export function PhotoMemoryGame() {
       router.push('/');
     }
   };
+  
+  if (cards.length === 0) {
+    return <div className="text-center">Generando memorama...</div>;
+  }
 
   return (
     <div className="flex flex-col items-center gap-8">
