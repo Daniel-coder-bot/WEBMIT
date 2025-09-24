@@ -3,31 +3,31 @@
     {
       "id": "img1",
       "description": "Una hermosa foto de nosotros.",
-      "imageUrl": "/images/image1.jpg",
+      "imageUrl": "/photo-memory/im1.jpg",
       "imageHint": "recuerdo uno"
     },
     {
       "id": "img2",
       "description": "Otra memoria juntos.",
-      "imageUrl": "/images/image2.jpg",
+      "imageUrl": "/photo-memory/im2.jpg",
       "imageHint": "recuerdo dos"
     },
     {
       "id": "img3",
       "description": "Nuestro viaje especial.",
-      "imageUrl": "/images/image3.jpg",
+      "imageUrl": "/photo-memory/im3.jpg",
       "imageHint": "recuerdo tres"
     },
     {
       "id": "img4",
       "description": "Ese día inolvidable.",
-      "imageUrl": "/images/image4.jpg",
+      "imageUrl": "/photo-memory/im4.jpg",
       "imageHint": "recuerdo cuatro"
     },
     {
       "id": "img5",
       "description": "Una de mis fotos favoritas.",
-      "imageUrl": "/images/image5.jpg",
+      "imageUrl": "/photo-memory/im5.jpg",
       "imageHint": "recuerdo cinco"
     },
     {
