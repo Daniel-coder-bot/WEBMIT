@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { PartyPopper } from 'lucide-react';
+import { useGameProgress } from '@/hooks/use-game-progress';
+import { useRouter } from 'next/navigation';
 
 const GRID_SIZE = 12;
 const WORDS = ['TEAMO', 'MITZY', 'MUSEOS', 'GATOS', 'LIBROS'];
@@ -80,6 +82,9 @@ export function WordSearchGame() {
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [foundCells, setFoundCells] = useState<Set<string>>(new Set());
   const [isComplete, setIsComplete] = useState(false);
+  const { completeGame, getNextGamePath } = useGameProgress();
+  const router = useRouter();
+
 
   useEffect(() => {
     setGrid(generateGrid());
@@ -128,6 +133,7 @@ export function WordSearchGame() {
       selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
       setFoundCells(newFoundCells);
       if (newFoundWords.length === WORDS.length) {
+        completeGame('/word-search');
         setIsComplete(true);
       }
     }
@@ -144,6 +150,15 @@ export function WordSearchGame() {
     setSelection([]);
     setIsSelecting(false);
   }
+
+  const handleNext = () => {
+    const nextGame = getNextGamePath('/word-search');
+    if (nextGame) {
+      router.push(nextGame);
+    } else {
+      router.push('/');
+    }
+  };
 
   if (grid.length === 0) {
     return <div className="text-center">Generando sopa de letras...</div>;
@@ -194,14 +209,16 @@ export function WordSearchGame() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <PartyPopper className="text-accent" />
-              ¡Felicidades!
+              ¡Felicidades, mi vida!
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Has encontrado todas las palabras. ¡Eres increíble!
+              ¡Has encontrado todas las palabras! Eres la mejor en esto, como en todo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={resetGame}>Jugar de Nuevo</AlertDialogAction>
+            <AlertDialogAction onClick={handleNext}>
+              {getNextGamePath('/word-search') ? 'Siguiente Juego' : 'Volver al Menú'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

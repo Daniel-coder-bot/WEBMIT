@@ -5,6 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useGameProgress } from '@/hooks/use-game-progress';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { PartyPopper } from 'lucide-react';
 
 const questions = [
   {
@@ -30,6 +42,8 @@ export function QuizGame() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [showScore, setShowScore] = useState(false);
+  const { completeGame, getNextGamePath } = useGameProgress();
+  const router = useRouter();
 
   const handleAnswerClick = (answerIndex: number) => {
     if (isAnswered) return;
@@ -48,6 +62,7 @@ export function QuizGame() {
       setSelectedAnswer(null);
       setIsAnswered(false);
     } else {
+      completeGame('/quiz');
       setShowScore(true);
     }
   };
@@ -60,20 +75,36 @@ export function QuizGame() {
     setShowScore(false);
   }
 
+  const handleNext = () => {
+    const nextGame = getNextGamePath('/quiz');
+    if (nextGame) {
+      router.push(nextGame);
+    } else {
+      router.push('/');
+    }
+  };
+
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   if (showScore) {
     return (
-      <Card className="max-w-md mx-auto text-center">
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl">¡Juego Terminado!</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-xl">Tu puntuación final es:</p>
-          <p className="text-5xl font-bold text-accent">{score} de {questions.length}</p>
-          <Button onClick={resetGame} className="mt-4">Jugar de Nuevo</Button>
-        </CardContent>
-      </Card>
+      <AlertDialog open={showScore}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-center text-center">
+            <PartyPopper className="text-accent size-12" />
+            <AlertDialogTitle className="font-headline text-3xl">¡Juego Terminado!</AlertDialogTitle>
+            <AlertDialogDescription className="text-xl">
+              ¡Lo hiciste genial, amor! Tu puntuación es <span className="font-bold text-accent">{score} de {questions.length}</span>.
+              Cada respuesta me recuerda lo mucho que nos conocemos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction onClick={handleNext}>
+               {getNextGamePath('/quiz') ? 'Siguiente Juego' : 'Volver al Menú'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     );
   }
 

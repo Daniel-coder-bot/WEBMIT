@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Heart } from 'lucide-react';
+import { useGameProgress } from '@/hooks/use-game-progress';
+import { useRouter } from 'next/navigation';
 
 const SECRET_CODE = '¿Quieres ser mi novia?';
 const GRID_SIZE = 15;
@@ -39,6 +41,8 @@ type FormData = z.infer<typeof FormSchema>;
 
 export function SecretCodeGame() {
   const [isRevealed, setIsRevealed] = useState(false);
+  const { completeGame, getNextGamePath } = useGameProgress();
+  const router = useRouter();
 
   const codeGrid = useMemo(() => generateCodeGrid(), []);
 
@@ -50,6 +54,7 @@ export function SecretCodeGame() {
   const onSubmit: SubmitHandler<FormData> = (data) => {
     const formattedInput = data.code.trim();
     if (formattedInput.toLowerCase() === SECRET_CODE.toLowerCase()) {
+      completeGame('/secret-code');
       setIsRevealed(true);
     } else {
       form.setError('code', {
@@ -63,6 +68,15 @@ export function SecretCodeGame() {
     setIsRevealed(false);
     form.reset();
   }
+
+  const handleNext = () => {
+    const nextGame = getNextGamePath('/secret-code');
+    if (nextGame) {
+      router.push(nextGame);
+    } else {
+      router.push('/');
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -105,11 +119,13 @@ export function SecretCodeGame() {
               {SECRET_CODE} ❤️
             </AlertDialogTitle>
             <AlertDialogDescription className="text-lg">
-              ¡Has descifrado mi corazón!
+              ¡Has descifrado el código de mi corazón! Eres la mejor detective y la mejor novia.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={resetGame}>Cerrar</AlertDialogAction>
+            <AlertDialogAction onClick={handleNext}>
+              {getNextGamePath('/secret-code') ? 'Siguiente Juego' : 'Finalizar'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -15,6 +15,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Heart, PartyPopper } from 'lucide-react';
+import { useGameProgress } from '@/hooks/use-game-progress';
+import { useRouter } from 'next/navigation';
 
 type CardData = {
   id: number;
@@ -46,6 +48,8 @@ export function PhotoMemoryGame() {
   const [isChecking, setIsChecking] = useState(false);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const { completeGame, getNextGamePath } = useGameProgress();
+  const router = useRouter();
 
   useEffect(() => {
     setCards(generateCards());
@@ -75,6 +79,7 @@ export function PhotoMemoryGame() {
         setFlippedCards([]);
         setIsChecking(false);
         if (newCards.every(card => card.isMatched)) {
+          completeGame('/photo-memory');
           setTimeout(() => setIsComplete(true), 500);
         }
       } else {
@@ -97,6 +102,15 @@ export function PhotoMemoryGame() {
     setMoves(0);
     setIsComplete(false);
   }
+
+  const handleNext = () => {
+    const nextGame = getNextGamePath('/photo-memory');
+    if (nextGame) {
+      router.push(nextGame);
+    } else {
+      router.push('/');
+    }
+  };
 
   return (
     <div className="flex flex-col items-center gap-8">
@@ -139,14 +153,16 @@ export function PhotoMemoryGame() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <PartyPopper className="text-accent" />
-              ¡Has completado el memorama!
+              ¡Memoria de campeona!
             </AlertDialogTitle>
             <AlertDialogDescription>
-              ¡Excelente memoria! Lo hiciste en {moves} movimientos.
+             ¡Excelente! Tienes una memoria tan brillante como tú. Lo hiciste en {moves} movimientos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={resetGame}>Jugar de Nuevo</AlertDialogAction>
+             <AlertDialogAction onClick={handleNext}>
+              {getNextGamePath('/photo-memory') ? 'Siguiente Juego' : 'Volver al Menú'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

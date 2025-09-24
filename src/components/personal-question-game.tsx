@@ -5,14 +5,25 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { personalizeContent } from '@/ai/flows/personalized-content-generator';
+import { useGameProgress } from '@/hooks/use-game-progress';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, PartyPopper } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const FormSchema = z.object({
   answer: z.string().min(1, 'La respuesta no puede estar vacía.'),
@@ -26,7 +37,10 @@ export function PersonalQuestionGame() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [aiQuestion, setAiQuestion] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
+  const { completeGame, getNextGamePath } = useGameProgress();
+  const router = useRouter();
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -36,6 +50,8 @@ export function PersonalQuestionGame() {
   const onSubmit: SubmitHandler<FormData> = (data) => {
     if (data.answer.toLowerCase().trim() === CORRECT_ANSWER) {
       setFeedback('¡Correcto! Sabes mucho de mí. ❤️');
+      completeGame('/personal-question');
+      setIsComplete(true);
     } else {
       setFeedback('Intenta otra vez. ¡Tú puedes!');
     }
@@ -61,6 +77,16 @@ export function PersonalQuestionGame() {
       setIsLoading(false);
     }
   };
+
+  const handleNext = () => {
+    const nextGame = getNextGamePath('/personal-question');
+    if (nextGame) {
+      router.push(nextGame);
+    } else {
+      router.push('/');
+    }
+  };
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -122,6 +148,25 @@ export function PersonalQuestionGame() {
           )}
         </CardContent>
       </Card>
+
+       <AlertDialog open={isComplete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <PartyPopper className="text-accent" />
+              ¡Respuesta Correcta, mi amor!
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Conocerme tan bien es el mejor regalo. ¡Sigamos con la diversión!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleNext}>
+              {getNextGamePath('/personal-question') ? 'Siguiente Juego' : 'Volver al Menú'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
