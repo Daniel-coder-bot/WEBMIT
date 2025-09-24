@@ -58,16 +58,18 @@ export function PhotoMemoryGame() {
   const router = useRouter();
 
   useEffect(() => {
+    // Generate cards on the client-side to avoid hydration mismatch
     setCards(generateCards());
   }, []);
 
   const handleCardClick = (cardId: number) => {
-    if (isChecking || flippedCards.includes(cardId) || cards[cardId].isMatched) {
+    if (isChecking || flippedCards.includes(cardId) || cards.find(c => c.id === cardId)?.isMatched) {
       return;
     }
 
-    const newCards = [...cards];
-    newCards[cardId].isFlipped = true;
+    const newCards = cards.map(card => 
+      card.id === cardId ? { ...card, isFlipped: true } : card
+    );
     setCards(newCards);
 
     const newFlippedCards = [...flippedCards, cardId];
@@ -77,23 +79,34 @@ export function PhotoMemoryGame() {
       setMoves(moves + 1);
       setIsChecking(true);
       const [firstCardId, secondCardId] = newFlippedCards;
-      if (newCards[firstCardId].iconName === newCards[secondCardId].iconName) {
+      const firstCard = newCards.find(c => c.id === firstCardId);
+      const secondCard = newCards.find(c => c.id === secondCardId);
+
+      if (firstCard && secondCard && firstCard.iconName === secondCard.iconName) {
         // Match
-        newCards[firstCardId].isMatched = true;
-        newCards[secondCardId].isMatched = true;
-        setCards(newCards);
-        setFlippedCards([]);
-        setIsChecking(false);
-        if (newCards.every(card => card.isMatched)) {
-          completeGame('/photo-memory');
-          setTimeout(() => setIsComplete(true), 500);
-        }
+        setTimeout(() => {
+            const matchedCards = newCards.map(card => 
+                (card.id === firstCardId || card.id === secondCardId) 
+                ? { ...card, isMatched: true, isFlipped: true } 
+                : card
+            );
+            setCards(matchedCards);
+            setFlippedCards([]);
+            setIsChecking(false);
+            if (matchedCards.every(card => card.isMatched)) {
+                completeGame('/photo-memory');
+                setTimeout(() => setIsComplete(true), 500);
+            }
+        }, 500);
       } else {
         // No match
         setTimeout(() => {
-          newCards[firstCardId].isFlipped = false;
-          newCards[secondCardId].isFlipped = false;
-          setCards(newCards);
+          const flippedBackCards = newCards.map(card =>
+            (card.id === firstCardId || card.id === secondCardId)
+            ? { ...card, isFlipped: false }
+            : card
+          )
+          setCards(flippedBackCards);
           setFlippedCards([]);
           setIsChecking(false);
         }, 1000);
