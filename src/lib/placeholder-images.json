@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "img1",
+      "description": "A beautiful natural landscape.",
+      "imageUrl": "https://images.unsplash.com/photo-1611307742746-43cbea512c37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxuYXR1cmUlMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzU4NjI2MjE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nature landscape"
+    },
+    {
+      "id": "img2",
+      "description": "Modern city architecture at dusk.",
+      "imageUrl": "https://images.unsplash.com/photo-1660821563343-ca2d322fb41b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2l0eSUyMGFyY2hpdGVjdHVyZXxlbnwwfHx8fDE3NTg1OTY0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city architecture"
+    },
+    {
+      "id": "img3",
+      "description": "A close-up of a cute, fluffy cat.",
+      "imageUrl": "https://images.unsplash.com/photo-1586289883499-f11d28aaf52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjdXRlJTIwY2F0fGVufDB8fHx8MTc1ODYwMDU0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cute cat"
+    },
+    {
+      "id": "img4",
+      "description": "A cozy library filled with old books.",
+      "imageUrl": "https://images.unsplash.com/photo-1721552008286-0b839c033140?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxib29rJTIwbGlicmFyeXxlbnwwfHx8fDE3NTg2MTQ1NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "book library"
+    },
+    {
+      "id": "img5",
+      "description": "An elegant art museum gallery.",
+      "imageUrl": "https://images.unsplash.com/photo-1524014444623-194fde519952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhcnQlMjBtdXNldW18ZW58MHx8fHwxNzU4NjA1NDQ2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "art museum"
+    },
+    {
+      "id": "img6",
+      "description": "A silhouette of a couple against a sunset.",
+      "imageUrl": "https://images.unsplash.com/photo-1639937856642-4addfdea684c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb3VwbGUlMjBsb3ZlfGVufDB8fHx8MTc1ODY0OTc2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "couple love"
+    }
+  ]
 }
