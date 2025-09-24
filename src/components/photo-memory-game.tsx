@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { Heart, Star, Cat, Gift, Sun } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import {
@@ -13,36 +13,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { PartyPopper } from 'lucide-react';
+import { PartyPopper, Cat } from 'lucide-react';
 import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
+import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
 
 type CardData = {
   id: number;
-  iconName: string;
-  icon: ReactNode;
+  imageId: string;
+  imageUrl: string;
+  imageHint: string;
   isFlipped: boolean;
   isMatched: boolean;
 };
-
-const ICONS = [
-  { name: 'Heart', component: <Heart className="size-full" /> },
-  { name: 'Star', component: <Star className="size-full" /> },
-  { name: 'Cat', component: <Cat className="size-full" /> },
-  { name: 'Gift', component: <Gift className="size-full" /> },
-  { name: 'Sun', component: <Sun className="size-full" /> },
-];
 
 const shuffleArray = (array: any[]) => {
   return array.sort(() => Math.random() - 0.5);
 };
 
 const generateCards = (): CardData[] => {
-  const cardPairs = [...ICONS, ...ICONS];
-  return shuffleArray(cardPairs).map((iconData, index) => ({
+  const selectedImages = shuffleArray(PlaceHolderImages).slice(0, 5);
+  const cardPairs = [...selectedImages, ...selectedImages];
+  return shuffleArray(cardPairs).map((imageData, index) => ({
     id: index,
-    iconName: iconData.name,
-    icon: iconData.component,
+    imageId: imageData.id,
+    imageUrl: imageData.imageUrl,
+    imageHint: imageData.imageHint,
     isFlipped: false,
     isMatched: false,
   }));
@@ -58,7 +54,6 @@ export function PhotoMemoryGame() {
   const router = useRouter();
 
   useEffect(() => {
-    // Generate cards on the client-side to avoid hydration mismatch
     setCards(generateCards());
   }, []);
 
@@ -82,7 +77,7 @@ export function PhotoMemoryGame() {
       const firstCard = newCards.find(c => c.id === firstCardId);
       const secondCard = newCards.find(c => c.id === secondCardId);
 
-      if (firstCard && secondCard && firstCard.iconName === secondCard.iconName) {
+      if (firstCard && secondCard && firstCard.imageId === secondCard.imageId) {
         // Match
         setTimeout(() => {
             const matchedCards = newCards.map(card => 
@@ -153,8 +148,14 @@ export function PhotoMemoryGame() {
               <div className="absolute w-full h-full rounded-lg bg-primary flex items-center justify-center [backface-visibility:hidden]">
                  <Cat className="size-1/2 text-primary-foreground/50"/>
               </div>
-              <div className="absolute w-full h-full rounded-lg bg-card p-3 [backface-visibility:hidden] [transform:rotateY(180deg)] text-accent">
-                {card.icon}
+              <div className="absolute w-full h-full rounded-lg bg-card p-1 [backface-visibility:hidden] [transform:rotateY(180deg)] text-accent overflow-hidden">
+                <Image
+                    src={card.imageUrl}
+                    alt={card.imageHint}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={card.imageHint}
+                  />
               </div>
             </div>
           </div>
