@@ -3,8 +3,6 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'export',
-  basePath: '/WEBMIT',
-  assetPrefix: '/WEBMIT/',
   typescript: {
     ignoreBuildErrors: true,
   },
