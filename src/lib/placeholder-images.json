@@ -29,12 +29,6 @@
       "description": "Una de mis fotos favoritas.",
       "imageUrl": "/im5.jpg",
       "imageHint": "recuerdo cinco"
-    },
-    {
-      "id": "img6",
-      "description": "Sonrisa que ilumina todo.",
-      "imageUrl": "/images/image6.jpg",
-      "imageHint": "recuerdo seis"
     }
   ]
 }
