@@ -114,7 +114,7 @@ export function WordSearchGame() {
 
   const endSelection = useCallback(() => {
     if (!isSelecting) return;
-
+  
     if (selection.length > 1) {
       const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
       const reversedSelectedWord = selectedWord.split('').reverse().join('');
@@ -122,30 +122,32 @@ export function WordSearchGame() {
       const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
   
       if (wordToFind && !foundWords.includes(wordToFind)) {
-        setFoundWords(prevWords => {
-          const newFoundWords = [...prevWords, wordToFind];
-          if (newFoundWords.length === WORDS.length) {
-            completeGame('/word-search');
-            setIsComplete(true);
-          }
-          return newFoundWords;
-        });
-        setFoundCells(prevCells => {
-          const newFoundCells = new Set(prevCells);
-          selection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
-          return newFoundCells;
-        });
+        // Create a new array for found words to trigger a re-render
+        const newFoundWords = [...foundWords, wordToFind];
+        setFoundWords(newFoundWords);
+        
+        // Create a new set for found cells
+        const newFoundCells = new Set(foundCells);
+        selection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
+        setFoundCells(newFoundCells);
+  
+        // Check for completion
+        if (newFoundWords.length === WORDS.length) {
+          completeGame('/word-search');
+          setIsComplete(true);
+        }
       }
     }
     
     // Always clear selection and end selecting state
     setSelection([]);
     setIsSelecting(false);
-  }, [grid, selection, foundWords, isSelecting, completeGame]);
+  }, [grid, selection, foundWords, isSelecting, completeGame, foundCells]);
 
 
   useEffect(() => {
     const endSelectionHandler = () => endSelection();
+    // This will handle both mouse and touch release
     window.addEventListener('mouseup', endSelectionHandler);
     window.addEventListener('touchend', endSelectionHandler);
 
@@ -225,7 +227,11 @@ export function WordSearchGame() {
 
   const handleInteractionMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!isSelecting) return;
-    e.preventDefault(); // Prevent scrolling on touch
+    
+    // Prevent default touch behavior like scrolling or pull-to-refresh
+    if ('touches' in e) {
+      e.preventDefault();
+    }
 
     let x, y;
     if ('touches' in e) {
