@@ -4,31 +4,71 @@
       "id": "img1",
       "description": "Una hermosa foto de nosotros.",
       "imageUrl": "/im1.jpg",
-      "imageHint": "recuerdo uno"
+      "imageHint": "recuerdo uno",
+      "message": "Este día fue mágico."
     },
     {
       "id": "img2",
       "description": "Otra memoria juntos.",
       "imageUrl": "/im2.jpg",
-      "imageHint": "recuerdo dos"
+      "imageHint": "recuerdo dos",
+      "message": "Tu sonrisa ilumina todo."
     },
     {
       "id": "img3",
       "description": "Nuestro viaje especial.",
       "imageUrl": "/im3.jpg",
-      "imageHint": "recuerdo tres"
+      "imageHint": "recuerdo tres",
+      "message": "Amo nuestras aventuras."
     },
     {
       "id": "img4",
       "description": "Ese día inolvidable.",
       "imageUrl": "/im4.jpg",
-      "imageHint": "recuerdo cuatro"
+      "imageHint": "recuerdo cuatro",
+      "message": "Contigo, cada momento es único."
     },
     {
       "id": "img5",
       "description": "Una de mis fotos favoritas.",
       "imageUrl": "/im5.jpg",
-      "imageHint": "recuerdo cinco"
+      "imageHint": "recuerdo cinco",
+      "message": "Me encanta esta foto tuya."
+    },
+    {
+      "id": "img6",
+      "description": "Recuerdo nuevo seis.",
+      "imageUrl": "/im6.jpg",
+      "imageHint": "recuerdo seis",
+      "message": "Siempre juntos, siempre felices."
+    },
+    {
+      "id": "img7",
+      "description": "Recuerdo nuevo siete.",
+      "imageUrl": "/im7.jpg",
+      "imageHint": "recuerdo siete",
+      "message": "Eres mi persona favorita."
+    },
+    {
+      "id": "img8",
+      "description": "Recuerdo nuevo ocho.",
+      "imageUrl": "/im8.jpg",
+      "imageHint": "recuerdo ocho",
+      "message": "Gracias por tantos momentos."
+    },
+    {
+      "id": "img9",
+      "description": "Recuerdo nuevo nueve.",
+      "imageUrl": "/im9.jpg",
+      "imageHint": "recuerdo nueve",
+      "message": "No puedo esperar por más recuerdos."
+    },
+    {
+      "id": "img10",
+      "description": "Recuerdo nuevo diez.",
+      "imageUrl": "/im10.jpg",
+      "imageHint": "recuerdo diez",
+      "message": "Te amo más que a nada."
     }
   ]
 }

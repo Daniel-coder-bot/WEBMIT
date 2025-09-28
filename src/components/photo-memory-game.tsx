@@ -6,6 +6,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +16,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { PartyPopper } from 'lucide-react';
+import { PartyPopper, Heart } from 'lucide-react';
 
 type Card = {
   id: string; // Unique ID for each card instance
   pairId: string; // ID to match pairs
   imageUrl: string;
   imageHint: string;
+  message: string;
   isFlipped: boolean;
   isMatched: boolean;
 };
@@ -41,15 +43,16 @@ export function PhotoMemoryGame() {
   const [isChecking, setIsChecking] = useState(false);
   const { completeGame, getNextGamePath } = useGameProgress();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Generate cards on client side
-    const gameImages = PlaceHolderImages.slice(0, 5); // Use 5 pairs
-    const initialCards = gameImages.flatMap((image, index) => {
+    const gameImages = PlaceHolderImages.slice(0, 10); // Use 10 pairs
+    const initialCards = gameImages.flatMap((image) => {
       const pairId = image.id;
       return [
-        { id: `${pairId}-a`, pairId, imageUrl: image.imageUrl, imageHint: image.imageHint, isFlipped: false, isMatched: false },
-        { id: `${pairId}-b`, pairId, imageUrl: image.imageUrl, imageHint: image.imageHint, isFlipped: false, isMatched: false },
+        { id: `${pairId}-a`, pairId, imageUrl: image.imageUrl, imageHint: image.imageHint, message: image.message, isFlipped: false, isMatched: false },
+        { id: `${pairId}-b`, pairId, imageUrl: image.imageUrl, imageHint: image.imageHint, message: image.message, isFlipped: false, isMatched: false },
       ];
     });
     setCards(shuffleArray(initialCards));
@@ -75,8 +78,19 @@ export function PhotoMemoryGame() {
         // It's a match
         newCards[firstIndex].isMatched = true;
         newCards[secondIndex].isMatched = true;
+        
+        toast({
+          description: (
+            <div className="flex items-center gap-2">
+              <Heart className="text-accent size-5" />
+              <p>{newCards[firstIndex].message}</p>
+            </div>
+          ),
+        });
+
         setFlippedCards([]);
         setIsChecking(false);
+
         const allMatched = newCards.every(card => card.isMatched);
         if (allMatched) {
           completeGame('/photo-memory');
@@ -112,11 +126,11 @@ export function PhotoMemoryGame() {
     <>
       <div className="flex flex-col items-center gap-4">
         <p className="text-xl font-semibold">Movimientos: {moves}</p>
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4">
           {cards.map((card, index) => (
             <div
               key={card.id}
-              className="aspect-square w-24 h-24 sm:w-32 sm:h-32 [perspective:1000px] cursor-pointer"
+              className="aspect-square w-20 h-20 sm:w-28 sm:h-28 [perspective:1000px] cursor-pointer"
               onClick={() => handleCardClick(index)}
             >
               <div
@@ -126,7 +140,7 @@ export function PhotoMemoryGame() {
                 )}
               >
                 <div className="absolute w-full h-full [backface-visibility:hidden] bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-4xl text-primary-foreground">❤️</span>
+                  <span className="text-3xl sm:text-4xl text-primary-foreground">❤️</span>
                 </div>
                 <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-card rounded-lg overflow-hidden">
                   <Image
