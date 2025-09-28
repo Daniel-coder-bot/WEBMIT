@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,42 +102,52 @@ export function WordSearchGame() {
   const { completeGame, getNextGamePath } = useGameProgress();
   const router = useRouter();
   const gridRef = useRef<HTMLDivElement>(null);
+  
+  const initialGrid = useMemo(() => generateGrid(), []);
+  
+  useEffect(() => {
+    setGrid(initialGrid);
+  }, [initialGrid]);
 
 
   const endSelection = useCallback(() => {
-    if (!isSelecting) return;
+    setIsSelecting(currentIsSelecting => {
+      if (!currentIsSelecting) return false;
 
-    if (selection.length > 0) {
-      const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
-      const reversedSelectedWord = selectedWord.split('').reverse().join('');
-  
-      const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
-  
-      if (wordToFind && !foundWords.includes(wordToFind)) {
-        setFoundWords(prev => {
-            const newFoundWords = [...prev, wordToFind];
-            if (newFoundWords.length === WORDS.length) {
-              completeGame('/word-search');
-              setIsComplete(true);
-            }
-            return newFoundWords;
-        });
-        setFoundCells(prev => {
-            const newFoundCells = new Set(prev);
-            selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
-            return newFoundCells;
-        });
-      }
-    }
+      setSelection(currentSelection => {
+        if (currentSelection.length > 1) {
+          const selectedWord = currentSelection.map(({ r, c }) => grid[r][c]).join('');
+          const reversedSelectedWord = selectedWord.split('').reverse().join('');
+      
+          const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
+      
+          if (wordToFind && !foundWords.includes(wordToFind)) {
+            setFoundWords(prevWords => {
+              const newFoundWords = [...prevWords, wordToFind];
+              if (newFoundWords.length === WORDS.length) {
+                completeGame('/word-search');
+                setIsComplete(true);
+              }
+              return newFoundWords;
+            });
+            setFoundCells(prevCells => {
+              const newFoundCells = new Set(prevCells);
+              currentSelection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
+              return newFoundCells;
+            });
+          }
+        }
+        // Return empty array to clear selection
+        return [];
+      });
 
-    setIsSelecting(false);
-    setSelection([]);
-  }, [isSelecting, selection, grid, foundWords, completeGame]);
+      // End selection state
+      return false;
+    });
+  }, [grid, foundWords, completeGame]);
 
 
   useEffect(() => {
-    setGrid(generateGrid());
-    
     const endSelectionHandler = () => endSelection();
     window.addEventListener('mouseup', endSelectionHandler);
     window.addEventListener('touchend', endSelectionHandler);
@@ -176,36 +186,39 @@ export function WordSearchGame() {
   const moveSelection = (cell: Cell | null) => {
     if (!isSelecting || !cell) return;
 
-    const start = selection[0];
-    let newSelection: Cell[] = [start];
-    
-    // Check if the cell is the same as the last one to avoid unnecessary calculations
-    if (selection.length > 1) {
-      const last = selection[selection.length - 1];
-      if (last.r === cell.r && last.c === cell.c) return;
-    }
+    setSelection(currentSelection => {
+        const start = currentSelection[0];
+        if (!start) return [];
 
-    // Determine direction
-    const dr = Math.sign(cell.r - start.r);
-    const dc = Math.sign(cell.c - start.c);
-    
-    // Only allow straight or diagonal lines
-    if (dr !== 0 && dc !== 0 && Math.abs(cell.r - start.r) !== Math.abs(cell.c - start.c)) {
-      return; 
-    }
-    
-    const dist = Math.max(Math.abs(cell.r - start.r), Math.abs(cell.c - start.c));
-
-    for (let i = 1; i <= dist; i++) {
-        const nextCell = { r: start.r + i * dr, c: start.c + i * dc };
-        if(nextCell.r >= 0 && nextCell.r < GRID_SIZE && nextCell.c >= 0 && nextCell.c < GRID_SIZE) {
-          if (isCellFound(nextCell.r, nextCell.c)) break;
-            newSelection.push(nextCell);
-        } else {
-            break;
+        // Check if the cell is the same as the last one to avoid unnecessary calculations
+        if (currentSelection.length > 1) {
+          const last = currentSelection[currentSelection.length - 1];
+          if (last.r === cell.r && last.c === cell.c) return currentSelection;
         }
-    }
-    setSelection(newSelection);
+
+        let newSelection: Cell[] = [start];
+        // Determine direction
+        const dr = Math.sign(cell.r - start.r);
+        const dc = Math.sign(cell.c - start.c);
+        
+        // Only allow straight or diagonal lines
+        if (dr !== 0 && dc !== 0 && Math.abs(cell.r - start.r) !== Math.abs(cell.c - start.c)) {
+          return currentSelection; 
+        }
+        
+        const dist = Math.max(Math.abs(cell.r - start.r), Math.abs(cell.c - start.c));
+
+        for (let i = 1; i <= dist; i++) {
+            const nextCell = { r: start.r + i * dr, c: start.c + i * dc };
+            if(nextCell.r >= 0 && nextCell.r < GRID_SIZE && nextCell.c >= 0 && nextCell.c < GRID_SIZE) {
+              if (isCellFound(nextCell.r, nextCell.c)) break;
+                newSelection.push(nextCell);
+            } else {
+                break;
+            }
+        }
+        return newSelection;
+    });
   };
 
   // Combined handlers for mouse and touch
