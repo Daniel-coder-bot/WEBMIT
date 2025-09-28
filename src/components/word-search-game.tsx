@@ -103,48 +103,45 @@ export function WordSearchGame() {
   const router = useRouter();
   const gridRef = useRef<HTMLDivElement>(null);
   
+  // Memoize the grid generation so it only runs once
   const initialGrid = useMemo(() => generateGrid(), []);
   
   useEffect(() => {
+    // Set the grid from the memoized value
     setGrid(initialGrid);
   }, [initialGrid]);
 
 
   const endSelection = useCallback(() => {
-    setIsSelecting(currentIsSelecting => {
-      if (!currentIsSelecting) return false;
+    if (!isSelecting) return;
 
-      setSelection(currentSelection => {
-        if (currentSelection.length > 1) {
-          const selectedWord = currentSelection.map(({ r, c }) => grid[r][c]).join('');
-          const reversedSelectedWord = selectedWord.split('').reverse().join('');
-      
-          const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
-      
-          if (wordToFind && !foundWords.includes(wordToFind)) {
-            setFoundWords(prevWords => {
-              const newFoundWords = [...prevWords, wordToFind];
-              if (newFoundWords.length === WORDS.length) {
-                completeGame('/word-search');
-                setIsComplete(true);
-              }
-              return newFoundWords;
-            });
-            setFoundCells(prevCells => {
-              const newFoundCells = new Set(prevCells);
-              currentSelection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
-              return newFoundCells;
-            });
+    if (selection.length > 1) {
+      const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
+      const reversedSelectedWord = selectedWord.split('').reverse().join('');
+  
+      const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
+  
+      if (wordToFind && !foundWords.includes(wordToFind)) {
+        setFoundWords(prevWords => {
+          const newFoundWords = [...prevWords, wordToFind];
+          if (newFoundWords.length === WORDS.length) {
+            completeGame('/word-search');
+            setIsComplete(true);
           }
-        }
-        // Return empty array to clear selection
-        return [];
-      });
-
-      // End selection state
-      return false;
-    });
-  }, [grid, foundWords, completeGame]);
+          return newFoundWords;
+        });
+        setFoundCells(prevCells => {
+          const newFoundCells = new Set(prevCells);
+          selection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
+          return newFoundCells;
+        });
+      }
+    }
+    
+    // Always clear selection and end selecting state
+    setSelection([]);
+    setIsSelecting(false);
+  }, [grid, selection, foundWords, isSelecting, completeGame]);
 
 
   useEffect(() => {
@@ -244,12 +241,13 @@ export function WordSearchGame() {
   };
   
   const resetGame = () => {
-    setGrid(generateGrid());
+    // Don't generate a new grid, just reset the state
     setFoundWords([]);
     setFoundCells(new Set());
     setIsComplete(false);
     setSelection([]);
     setIsSelecting(false);
+    setGrid(generateGrid()); // if you want a new grid on reset
   }
 
   const handleNext = () => {
