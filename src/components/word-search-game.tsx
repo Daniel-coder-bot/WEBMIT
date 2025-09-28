@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -104,8 +104,40 @@ export function WordSearchGame() {
   const gridRef = useRef<HTMLDivElement>(null);
 
 
+  const endSelection = useCallback(() => {
+    if (!isSelecting) return;
+
+    if (selection.length > 0) {
+      const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
+      const reversedSelectedWord = selectedWord.split('').reverse().join('');
+  
+      const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
+  
+      if (wordToFind && !foundWords.includes(wordToFind)) {
+        setFoundWords(prev => {
+            const newFoundWords = [...prev, wordToFind];
+            if (newFoundWords.length === WORDS.length) {
+              completeGame('/word-search');
+              setIsComplete(true);
+            }
+            return newFoundWords;
+        });
+        setFoundCells(prev => {
+            const newFoundCells = new Set(prev);
+            selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
+            return newFoundCells;
+        });
+      }
+    }
+
+    setIsSelecting(false);
+    setSelection([]);
+  }, [isSelecting, selection, grid, foundWords, completeGame]);
+
+
   useEffect(() => {
     setGrid(generateGrid());
+    
     const endSelectionHandler = () => endSelection();
     window.addEventListener('mouseup', endSelectionHandler);
     window.addEventListener('touchend', endSelectionHandler);
@@ -114,7 +146,7 @@ export function WordSearchGame() {
       window.removeEventListener('mouseup', endSelectionHandler);
       window.removeEventListener('touchend', endSelectionHandler);
     };
-  }, []);
+  }, [endSelection]);
 
   const cellKey = (r: number, c: number) => `${r}-${c}`;
 
@@ -136,7 +168,7 @@ export function WordSearchGame() {
   };
 
   const startSelection = (cell: Cell | null) => {
-    if (!cell) return;
+    if (!cell || isCellFound(cell.r, cell.c)) return;
     setIsSelecting(true);
     setSelection([cell]);
   };
@@ -159,7 +191,6 @@ export function WordSearchGame() {
     
     // Only allow straight or diagonal lines
     if (dr !== 0 && dc !== 0 && Math.abs(cell.r - start.r) !== Math.abs(cell.c - start.c)) {
-       // Not a valid line, could reset or just ignore
       return; 
     }
     
@@ -168,43 +199,13 @@ export function WordSearchGame() {
     for (let i = 1; i <= dist; i++) {
         const nextCell = { r: start.r + i * dr, c: start.c + i * dc };
         if(nextCell.r >= 0 && nextCell.r < GRID_SIZE && nextCell.c >= 0 && nextCell.c < GRID_SIZE) {
+          if (isCellFound(nextCell.r, nextCell.c)) break;
             newSelection.push(nextCell);
         } else {
             break;
         }
     }
     setSelection(newSelection);
-  };
-
-  const endSelection = () => {
-    if (!isSelecting || selection.length === 0) {
-      setIsSelecting(false);
-      return;
-    };
-
-    const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
-    const reversedSelectedWord = selectedWord.split('').reverse().join('');
-
-    const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
-
-    if (wordToFind && !foundWords.includes(wordToFind)) {
-      setFoundWords(prev => {
-          const newFoundWords = [...prev, wordToFind];
-          if (newFoundWords.length === WORDS.length) {
-            completeGame('/word-search');
-            setIsComplete(true);
-          }
-          return newFoundWords;
-      });
-      setFoundCells(prev => {
-          const newFoundCells = new Set(prev);
-          selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
-          return newFoundCells;
-      });
-    }
-
-    setIsSelecting(false);
-    setSelection([]);
   };
 
   // Combined handlers for mouse and touch
@@ -218,6 +219,7 @@ export function WordSearchGame() {
 
     let x, y;
     if ('touches' in e) {
+      if (e.touches.length === 0) return;
       x = e.touches[0].clientX;
       y = e.touches[0].clientY;
     } else {
@@ -258,7 +260,7 @@ export function WordSearchGame() {
             ref={gridRef}
             className="grid gap-1 select-none w-full h-full" 
             style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
-            onMouseLeave={() => isSelecting && endSelection()}
+            onMouseLeave={endSelection}
             onTouchMove={handleInteractionMove}
             onMouseMove={handleInteractionMove}
           >
