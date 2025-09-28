@@ -18,7 +18,7 @@ import { useGameProgress } from '@/hooks/use-game-progress';
 import { useRouter } from 'next/navigation';
 
 const GRID_SIZE = 12;
-const WORDS = ['TEAMO', 'MITZY', 'MUSEOS', 'GATOS', 'LIBROS'];
+const WORDS = ['TQM', 'MITZY', 'MUSEOS', 'GATOS', 'LIBROS', 'HELADOS'];
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 type Cell = { r: number; c: number };
@@ -252,8 +252,6 @@ export function WordSearchGame() {
             onMouseLeave={() => isSelecting && endSelection()}
             onTouchMove={handleInteractionMove}
             onMouseMove={handleInteractionMove}
-            onTouchEnd={endSelection}
-            onMouseUp={endSelection}
           >
             {grid.map((row, r) =>
               row.map((letter, c) => (
