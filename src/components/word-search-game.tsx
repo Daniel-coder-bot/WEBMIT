@@ -106,6 +106,14 @@ export function WordSearchGame() {
 
   useEffect(() => {
     setGrid(generateGrid());
+    const endSelectionHandler = () => endSelection();
+    window.addEventListener('mouseup', endSelectionHandler);
+    window.addEventListener('touchend', endSelectionHandler);
+
+    return () => {
+      window.removeEventListener('mouseup', endSelectionHandler);
+      window.removeEventListener('touchend', endSelectionHandler);
+    };
   }, []);
 
   const cellKey = (r: number, c: number) => `${r}-${c}`;
@@ -139,13 +147,20 @@ export function WordSearchGame() {
     const start = selection[0];
     const newSelection: Cell[] = [start];
     
+    // Check if the cell is the same as the last one to avoid unnecessary calculations
+    if (selection.length > 1) {
+      const last = selection[selection.length - 1];
+      if (last.r === cell.r && last.c === cell.c) return;
+    }
+
     // Determine direction
     const dr = Math.sign(cell.r - start.r);
     const dc = Math.sign(cell.c - start.c);
     
     // Only allow straight or diagonal lines
-    if (Math.abs(dr) > 0 && Math.abs(dc) > 0 && Math.abs(cell.r - start.r) !== Math.abs(cell.c - start.c)) {
-      return; // Not a valid diagonal
+    if (dr !== 0 && dc !== 0 && Math.abs(cell.r - start.r) !== Math.abs(cell.c - start.c)) {
+       // Not a valid line, could reset or just ignore
+      return; 
     }
     
     const dist = Math.max(Math.abs(cell.r - start.r), Math.abs(cell.c - start.c));
@@ -157,7 +172,10 @@ export function WordSearchGame() {
   };
 
   const endSelection = () => {
-    if (!isSelecting) return;
+    if (!isSelecting || selection.length === 0) {
+      setIsSelecting(false);
+      return;
+    };
 
     const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
     const reversedSelectedWord = selectedWord.split('').reverse().join('');
@@ -180,24 +198,26 @@ export function WordSearchGame() {
     setSelection([]);
   };
 
-  const handleMouseDown = (r: number, c: number) => startSelection({r, c});
-  const handleMouseEnter = (r: number, c: number) => moveSelection({r, c});
-  const handleMouseUp = () => endSelection();
-  
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    const cell = getCellFromCoordinates(touch.clientX, touch.clientY);
-    startSelection(cell);
-  };
-  
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    const cell = getCellFromCoordinates(touch.clientX, touch.clientY);
+  // Combined handlers for mouse and touch
+  const handleInteractionStart = (r: number, c: number) => {
+    startSelection({r,c});
+  }
+
+  const handleInteractionMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!isSelecting) return;
+    e.preventDefault(); // Prevent scrolling on touch
+
+    let x, y;
+    if ('touches' in e) {
+      x = e.touches[0].clientX;
+      y = e.touches[0].clientY;
+    } else {
+      x = e.clientX;
+      y = e.clientY;
+    }
+    const cell = getCellFromCoordinates(x, y);
     moveSelection(cell);
   };
-  
-  const handleTouchEnd = () => endSelection();
-
   
   const resetGame = () => {
     setGrid(generateGrid());
@@ -229,11 +249,11 @@ export function WordSearchGame() {
             ref={gridRef}
             className="grid gap-1 select-none w-full h-full" 
             style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onMouseLeave={() => isSelecting && endSelection()}
+            onTouchMove={handleInteractionMove}
+            onMouseMove={handleInteractionMove}
+            onTouchEnd={endSelection}
+            onMouseUp={endSelection}
           >
             {grid.map((row, r) =>
               row.map((letter, c) => (
@@ -245,8 +265,8 @@ export function WordSearchGame() {
                     isCellFound(r, c) ? "bg-accent text-accent-foreground" :
                     isCellSelected(r, c) ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-secondary"
                   )}
-                  onMouseDown={() => handleMouseDown(r, c)}
-                  onMouseEnter={() => handleMouseEnter(r, c)}
+                  onMouseDown={() => handleInteractionStart(r, c)}
+                  onTouchStart={() => handleInteractionStart(r, c)}
                 >
                   {letter}
                 </div>
