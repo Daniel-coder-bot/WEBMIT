@@ -145,7 +145,7 @@ export function WordSearchGame() {
     if (!isSelecting || !cell) return;
 
     const start = selection[0];
-    const newSelection: Cell[] = [start];
+    let newSelection: Cell[] = [start];
     
     // Check if the cell is the same as the last one to avoid unnecessary calculations
     if (selection.length > 1) {
@@ -166,7 +166,12 @@ export function WordSearchGame() {
     const dist = Math.max(Math.abs(cell.r - start.r), Math.abs(cell.c - start.c));
 
     for (let i = 1; i <= dist; i++) {
-      newSelection.push({ r: start.r + i * dr, c: start.c + i * dc });
+        const nextCell = { r: start.r + i * dr, c: start.c + i * dc };
+        if(nextCell.r >= 0 && nextCell.r < GRID_SIZE && nextCell.c >= 0 && nextCell.c < GRID_SIZE) {
+            newSelection.push(nextCell);
+        } else {
+            break;
+        }
     }
     setSelection(newSelection);
   };
@@ -183,15 +188,19 @@ export function WordSearchGame() {
     const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
 
     if (wordToFind && !foundWords.includes(wordToFind)) {
-      const newFoundWords = [...foundWords, wordToFind];
-      setFoundWords(newFoundWords);
-      const newFoundCells = new Set(foundCells);
-      selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
-      setFoundCells(newFoundCells);
-      if (newFoundWords.length === WORDS.length) {
-        completeGame('/word-search');
-        setIsComplete(true);
-      }
+      setFoundWords(prev => {
+          const newFoundWords = [...prev, wordToFind];
+          if (newFoundWords.length === WORDS.length) {
+            completeGame('/word-search');
+            setIsComplete(true);
+          }
+          return newFoundWords;
+      });
+      setFoundCells(prev => {
+          const newFoundCells = new Set(prev);
+          selection.forEach(cell => newFoundCells.add(cellKey(cell.r, cell.c)));
+          return newFoundCells;
+      });
     }
 
     setIsSelecting(false);
