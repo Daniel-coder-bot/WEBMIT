@@ -115,34 +115,38 @@ export function WordSearchGame() {
   const endSelection = useCallback(() => {
     if (!isSelecting) return;
   
-    if (selection.length > 1) {
-      const selectedWord = selection.map(({ r, c }) => grid[r][c]).join('');
+    let finalSelection: Cell[] = [];
+    setSelection(currentSelection => {
+      finalSelection = currentSelection;
+      return []; // Clear selection visually
+    });
+
+    if (finalSelection.length > 1) {
+      const selectedWord = finalSelection.map(({ r, c }) => grid[r][c]).join('');
       const reversedSelectedWord = selectedWord.split('').reverse().join('');
   
       const wordToFind = WORDS.find(w => w === selectedWord || w === reversedSelectedWord);
   
       if (wordToFind && !foundWords.includes(wordToFind)) {
-        // Create a new array for found words to trigger a re-render
-        const newFoundWords = [...foundWords, wordToFind];
-        setFoundWords(newFoundWords);
-        
-        // Create a new set for found cells
-        const newFoundCells = new Set(foundCells);
-        selection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
-        setFoundCells(newFoundCells);
-  
-        // Check for completion
-        if (newFoundWords.length === WORDS.length) {
-          completeGame('/word-search');
-          setIsComplete(true);
-        }
+        setFoundWords(prev => [...prev, wordToFind]);
+        setFoundCells(prev => {
+          const newFoundCells = new Set(prev);
+          finalSelection.forEach(cell => newFoundCells.add(`${cell.r}-${cell.c}`));
+          return newFoundCells;
+        });
       }
     }
     
-    // Always clear selection and end selecting state
-    setSelection([]);
     setIsSelecting(false);
-  }, [grid, selection, foundWords, isSelecting, completeGame, foundCells]);
+  }, [grid, isSelecting, foundWords]);
+
+
+  useEffect(() => {
+    if (foundWords.length === WORDS.length && WORDS.length > 0) {
+      completeGame('/word-search');
+      setIsComplete(true);
+    }
+  }, [foundWords, completeGame]);
 
 
   useEffect(() => {
@@ -228,7 +232,6 @@ export function WordSearchGame() {
   const handleInteractionMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!isSelecting) return;
     
-    // Prevent default touch behavior like scrolling or pull-to-refresh
     if ('touches' in e) {
       e.preventDefault();
     }
@@ -247,13 +250,12 @@ export function WordSearchGame() {
   };
   
   const resetGame = () => {
-    // Don't generate a new grid, just reset the state
+    setGrid(generateGrid());
     setFoundWords([]);
     setFoundCells(new Set());
     setIsComplete(false);
     setSelection([]);
     setIsSelecting(false);
-    setGrid(generateGrid()); // if you want a new grid on reset
   }
 
   const handleNext = () => {
@@ -276,7 +278,10 @@ export function WordSearchGame() {
           <div 
             ref={gridRef}
             className="grid gap-1 select-none w-full h-full" 
-            style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
+            style={{ 
+              gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
+              touchAction: 'none'
+            }}
             onMouseLeave={endSelection}
             onTouchMove={handleInteractionMove}
             onMouseMove={handleInteractionMove}
